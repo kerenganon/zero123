@@ -231,7 +231,7 @@ class ObjaverseData(Dataset):
         if not isinstance(ext, (tuple, list, ListConfig)):
             ext = [ext]
 
-        with open(os.path.join(root_dir, 'valid_paths.json')) as f:
+        with open(os.path.join('', 'valid_paths.json')) as f:
             self.paths = json.load(f)
             
         total_objects = len(self.paths)
