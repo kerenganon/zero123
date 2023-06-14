@@ -601,6 +601,8 @@ if __name__ == "__main__":
     #               key: value
 
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    data = np.load('zero123/views_whole_sphere/0a00b69cc98b45ab9fdd02cf86729909/000.npy')
+    
 
     # add cwd for convenience and to make classes in this file available when
     # running as `python main.py`
@@ -856,6 +858,7 @@ if __name__ == "__main__":
         trainer.logdir = logdir  ###
 
         # data
+        # KEREN: This is where the data is initialized, currently it doesn't contain anything
         data = instantiate_from_config(config.data)
         # NOTE according to https://pytorch-lightning.readthedocs.io/en/latest/datamodules.html
         # calling these ourselves should not be necessary but it is.
@@ -917,7 +920,8 @@ if __name__ == "__main__":
         if opt.train:
             try:
                 trainer.fit(model, data)
-            except Exception:
+            # KEREN: This is where we stop without training data
+            except Exception as exc:
                 if not opt.debug:
                     melk()
                 raise

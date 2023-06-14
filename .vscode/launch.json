@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: zero123/main.py",
+            "type": "python",
+            "request": "launch",
+            "program": "zero123/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-t",
+                "--base=zero123/configs/sd-objaverse-finetune-c_concat-256.yaml",
+                "--gpus=1",
+                "--scale_lr=False",
+                "--num_nodes=1",
+                "--seed=42",
+                "--check_val_every_n_epoch=10",
+                "--finetune_from=zero123/105000.ckpt"
+            ]
+        },
+        {
+            "name": "Python: test.py",
+            "type": "python",
+            "request": "launch",
+            "program": "test.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        }
+    ]
+}

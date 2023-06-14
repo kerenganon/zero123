@@ -231,8 +231,10 @@ class ObjaverseData(Dataset):
         if not isinstance(ext, (tuple, list, ListConfig)):
             ext = [ext]
 
-        with open(os.path.join('', 'valid_paths.json')) as f:
-            self.paths = json.load(f)
+        # with open('zero123/valid_paths.json') as f:
+        #     self.paths = json.load(f)
+        # KEREN: this is where we change the paths to include the ones we add
+        self.paths = ['0a00b69cc98b45ab9fdd02cf86729909', '0a0b504f51a94d95a2d492d3c372ebe5', '0a0be10ec4974c8f932818d0a7472702']
             
         total_objects = len(self.paths)
         if validation:
