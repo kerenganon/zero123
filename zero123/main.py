@@ -8,6 +8,7 @@ import copy
 
 from packaging import version
 from omegaconf import OmegaConf
+import gc
 from torch.utils.data import random_split, DataLoader, Dataset, Subset
 from functools import partial
 from PIL import Image
@@ -16,6 +17,7 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
+import traceback
 from pytorch_lightning.utilities import rank_zero_info
 
 from ldm.data.base import Txt2ImgIterableBaseDataset
@@ -453,6 +455,9 @@ class CUDACallback(Callback):
 
             rank_zero_info(f"Average Epoch time: {epoch_time:.2f} seconds")
             rank_zero_info(f"Average Peak memory {max_memory:.2f}MiB")
+            torch.cuda.empty_cache()
+            gc.collect()
+            
         except AttributeError:
             pass
 
@@ -601,7 +606,7 @@ if __name__ == "__main__":
     #               key: value
 
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    data = np.load('zero123/views_whole_sphere/0a00b69cc98b45ab9fdd02cf86729909/000.npy')
+    # data = np.load('zero123/views_whole_sphere/0a00b69cc98b45ab9fdd02cf86729909/000.npy')
     
 
     # add cwd for convenience and to make classes in this file available when
@@ -922,6 +927,8 @@ if __name__ == "__main__":
                 trainer.fit(model, data)
             # KEREN: This is where we stop without training data
             except Exception as exc:
+                traceback.print_exc()
+                print(exc)
                 if not opt.debug:
                     melk()
                 raise

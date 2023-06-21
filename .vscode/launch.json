@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "zero123/main.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args": [
                 "-t",
                 "--base=zero123/configs/sd-objaverse-finetune-c_concat-256.yaml",
