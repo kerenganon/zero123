@@ -150,6 +150,12 @@ def get_parser(**parser_kwargs):
         default=512,
         help="resolution of image",
     )
+    # parser.add_argument(
+    #     "--max_epochs",
+    #     type=int,
+    #     default=1000,
+    #     help="number of epochs",
+    # )
     return parser
 
 
@@ -858,6 +864,10 @@ if __name__ == "__main__":
             # hence we monkey patch things
             from pytorch_lightning.trainer.connectors.checkpoint_connector import CheckpointConnector
             setattr(CheckpointConnector, "hpc_resume_path", None)
+
+        # trainer_kwargs["max_epochs"] = 10000
+        if opt.max_epochs:
+            trainer_kwargs["max_epochs"] = opt.max_epochs
 
         trainer = Trainer.from_argparse_args(trainer_opt, **trainer_kwargs)
         trainer.logdir = logdir  ###

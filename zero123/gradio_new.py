@@ -467,8 +467,10 @@ def calc_cam_cone_pts_3d(polar_deg, azimuth_deg, radius_m, fov_deg):
 
 def run_demo(
         device_idx=_GPU_INDEX,
+        # KEREN: changes for new ckpts
         # ckpt='105000.ckpt',
-        ckpt = 'logs/2023-06-20T20-39-48_sd-objaverse-finetune-c_concat-256_Google_Earth/checkpoints/last.ckpt',
+        ckpt = 'logs/2023-06-26T20-55-55_sd-objaverse-finetune-c_concat-256_Google_earth_50000_iterations/checkpoints/last.ckpt',
+        # ckpt = 'logs/2023-06-21T12-17-21_sd-objaverse-finetune-c_concat-256_All_cathedral_images/checkpoints/last.ckpt',
         config='zero123/configs/sd-objaverse-finetune-c_concat-256.yaml'):
         # config='configs/sd-objaverse-finetune-c_concat-256.yaml'):
 

@@ -286,7 +286,7 @@ class ObjaverseData(Dataset):
         '''
         try:
             # KEREN: copying since the current data isn't writable
-            print("******* KEREN ******* loading file: " + path)
+            # print("******* KEREN ******* loading file: " + path)
             original_img = plt.imread(path)
             img = np.copy(original_img)
         except:
@@ -322,7 +322,8 @@ class ObjaverseData(Dataset):
                              "ref_img_555.jpg",
                              "ref_img_552.jpg"]
         list_of_paths = [f for f in listdir(folder) 
-                         if isfile(join(folder, f)) 
+                         if isfile(join(folder, f))
+                         and f.startswith('Milan') 
                          and f not in list_of_2d_images]
         # list_of_paths = listdir(dir + '/square_centered_images')[0:24]
         total_view = len(list_of_paths)

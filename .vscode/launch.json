@@ -19,7 +19,8 @@
                 "--num_nodes=1",
                 "--seed=42",
                 "--check_val_every_n_epoch=10",
-                "--finetune_from=zero123/105000.ckpt"
+                "--finetune_from=zero123/105000.ckpt",
+                "--max_epochs=10000"
             ]
         },
         {
@@ -27,6 +28,14 @@
             "type": "python",
             "request": "launch",
             "program": "test.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        },
+        {
+            "name": "Python: zero123/test_2.py",
+            "type": "python",
+            "request": "launch",
+            "program": "zero123/test_2.py",
             "console": "integratedTerminal",
             "justMyCode": true,
         }
