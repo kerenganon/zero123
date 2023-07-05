@@ -14,6 +14,8 @@ from ldm.util import instantiate_from_config
 from datasets import load_dataset
 import pytorch_lightning as pl
 import copy
+from os import listdir
+from os.path import isfile, join
 import csv
 import cv2
 import random
@@ -137,7 +139,7 @@ class NfpDataset(Dataset):
     def __init__(self,
         root_dir,
         image_transforms=[],
-        ext="jpg",
+        ext=['jpg', 'jpeg', 'JPG'],
         default_caption="",
         ) -> None:
         """assume sequential frames and a deterministic transform"""
@@ -209,7 +211,7 @@ class ObjaverseData(Dataset):
     def __init__(self,
         root_dir='.objaverse/hf-objaverse-v1/views',
         image_transforms=[],
-        ext="png",
+        ext=['jpg', 'jpeg', 'JPG'],
         default_trans=torch.zeros(3),
         postprocess=None,
         return_paths=False,
@@ -231,15 +233,22 @@ class ObjaverseData(Dataset):
         if not isinstance(ext, (tuple, list, ListConfig)):
             ext = [ext]
 
-        with open(os.path.join('', 'valid_paths.json')) as f:
-            self.paths = json.load(f)
-            
-        total_objects = len(self.paths)
-        if validation:
-            self.paths = self.paths[math.floor(total_objects / 100. * 99.):] # used last 1% as validation
-        else:
-            self.paths = self.paths[:math.floor(total_objects / 100. * 99.)] # used first 99% as training
-        print('============= length of dataset %d =============' % len(self.paths))
+        # with open('zero123/valid_paths.json') as f:
+        #     self.paths = json.load(f)
+        # KEREN: this is where we change the paths to include the ones we add
+        # self.paths = ['0a00b69cc98b45ab9fdd02cf86729909', '0a0b504f51a94d95a2d492d3c372ebe5', '0a0be10ec4974c8f932818d0a7472702']
+        zero123_dir = 'zero123/'+root_dir
+        self.paths = listdir(zero123_dir)
+        # KEREN: removed this since we only have a single object
+        # total_objects = len(self.paths)
+        # if validation:
+        #     # used last 1% as validation
+        #     self.paths = self.paths[math.floor(total_objects / 100. * 99.):]
+        # else:
+        #     # used first 99% as training
+        #     self.paths = self.paths[:math.floor(total_objects / 100. * 99.)]
+        print('============= length of dataset %d =============' %
+              len(self.paths))
         self.tform = image_transforms
 
     def __len__(self):
@@ -276,7 +285,10 @@ class ObjaverseData(Dataset):
         replace background pixel with random color in rendering
         '''
         try:
-            img = plt.imread(path)
+            # KEREN: copying since the current data isn't writable
+            # print("******* KEREN ******* loading file: " + path)
+            original_img = plt.imread(path)
+            img = np.copy(original_img)
         except:
             print(path)
             sys.exit()
@@ -287,27 +299,76 @@ class ObjaverseData(Dataset):
     def __getitem__(self, index):
 
         data = {}
-        total_view = 12
-        index_target, index_cond = random.sample(range(total_view), 2) # without replacement
-        filename = os.path.join(self.root_dir, self.paths[index])
+        # KEREN: updating this for the new folder of images
+        # total_view = 12
+        dir = 'zero123/views_whole_sphere/Milan_Cathedral'
+        folder = dir + '/square_centered_images'
+        # list_of_paths = listdir(dir + '/square_centered_images')
+        # KEREN: take only google earth images
+        # list_of_paths = [f for f in listdir(folder) if isfile(join(folder, f)) and f.startswith('Milan')]
+        # KEREN: Remove 2-d images
+        list_of_2d_images = ["ref_img_162.jpg", 
+                             "ref_img_556.jpg",
+                             "ref_img_554.jpg",
+                             "ref_img_553.jpg",
+                             "ref_img_1349.jpg",
+                             "ref_img_1353.jpg",
+                             "ref_img_567.tif",
+                             "ref_img_557.jpg",
+                             "ref_img_842.jpg",
+                             "ref_img_562.tif",
+                             "ref_img_1222.jpg",
+                             "ref_img_563.tif",
+                             "ref_img_555.jpg",
+                             "ref_img_552.jpg"]
+        list_of_paths = [f for f in listdir(folder) 
+                         if isfile(join(folder, f))
+                         and f.startswith('Milan') 
+                         and f not in list_of_2d_images]
+        # list_of_paths = listdir(dir + '/square_centered_images')[0:24]
+        total_view = len(list_of_paths)
+        index_target, index_cond = random.sample(
+            range(total_view), 2)  # without replacement
+        target_img_filename = dir + '/square_centered_images/' + list_of_paths[index_target]
+        target_npy_filename = dir + '/npys/' + list_of_paths[index_target].split('.')[0] + '.npy'
+        cond_img_filename = dir + '/square_centered_images/' + list_of_paths[index_cond]
+        cond_npy_filename = dir + '/npys/' + list_of_paths[index_cond].split('.')[0] + '.npy'
+        # filename = os.path.join(self.root_dir, self.paths[index])
 
         # print(self.paths[index])
+
+
+
+        # target_img_filename = 'zero123/views_whole_sphere_1/0a00b69cc98b45ab9fdd02cf86729909/000.png'
+        # target_npy_filename = 'zero123/views_whole_sphere_1/0a00b69cc98b45ab9fdd02cf86729909/000.npy'
+        # cond_img_filename = 'zero123/views_whole_sphere_1/0a00b69cc98b45ab9fdd02cf86729909/005.png'
+        # cond_npy_filename = 'zero123/views_whole_sphere_1/0a00b69cc98b45ab9fdd02cf86729909/005.npy'
+
+
+
+
 
         if self.return_paths:
             data["path"] = str(filename)
         
-        color = [1., 1., 1., 1.]
+        # KEREN: change to 3D since this is jpg and not png
+        # color = [1., 1., 1., 1.]
+        png_color = [1., 1., 1., 1.]
+        non_png_color = [1., 1., 1.]
+        target_color = png_color if target_img_filename.endswith(".png") else non_png_color
+        cond_color = png_color if cond_img_filename.endswith(".png") else non_png_color 
 
         try:
-            target_im = self.process_im(self.load_im(os.path.join(filename, '%03d.png' % index_target), color))
-            cond_im = self.process_im(self.load_im(os.path.join(filename, '%03d.png' % index_cond), color))
-            target_RT = np.load(os.path.join(filename, '%03d.npy' % index_target))
-            cond_RT = np.load(os.path.join(filename, '%03d.npy' % index_cond))
-        except:
+            target_im = self.process_im(self.load_im(target_img_filename, target_color))
+            cond_im = self.process_im(self.load_im(cond_img_filename, cond_color))
+            target_RT = np.load(target_npy_filename)
+            cond_RT = np.load(cond_npy_filename)
+        except Exception  as exc:
+            print(exc)
             # very hacky solution, sorry about this
             filename = os.path.join(self.root_dir, '692db5f2d3a04bb286cb977a7dba903e_1') # this one we know is valid
-            target_im = self.process_im(self.load_im(os.path.join(filename, '%03d.png' % index_target), color))
-            cond_im = self.process_im(self.load_im(os.path.join(filename, '%03d.png' % index_cond), color))
+            target_im = self.process_im(self.load_im(os.path.join(filename, '%03d.png' % index_target), png_color))
+            cond_im = self.process_im(self.load_im(os.path.join(filename, '%03d.png' % index_cond), png_color))
             target_RT = np.load(os.path.join(filename, '%03d.npy' % index_target))
             cond_RT = np.load(os.path.join(filename, '%03d.npy' % index_cond))
             target_im = torch.zeros_like(target_im)
@@ -331,7 +392,7 @@ class FolderData(Dataset):
         root_dir,
         caption_file=None,
         image_transforms=[],
-        ext="jpg",
+        ext=['jpg', 'jpeg', 'JPG'],
         default_caption="",
         postprocess=None,
         return_paths=False,

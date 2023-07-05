@@ -467,8 +467,12 @@ def calc_cam_cone_pts_3d(polar_deg, azimuth_deg, radius_m, fov_deg):
 
 def run_demo(
         device_idx=_GPU_INDEX,
-        ckpt='105000.ckpt',
-        config='configs/sd-objaverse-finetune-c_concat-256.yaml'):
+        # KEREN: changes for new ckpts
+        # ckpt='105000.ckpt',
+        ckpt = 'logs/2023-06-26T20-55-55_sd-objaverse-finetune-c_concat-256_Google_earth_50000_iterations/checkpoints/last.ckpt',
+        # ckpt = 'logs/2023-06-21T12-17-21_sd-objaverse-finetune-c_concat-256_All_cathedral_images/checkpoints/last.ckpt',
+        config='zero123/configs/sd-objaverse-finetune-c_concat-256.yaml'):
+        # config='configs/sd-objaverse-finetune-c_concat-256.yaml'):
 
     print('sys.argv:', sys.argv)
     if len(sys.argv) > 1:
@@ -503,7 +507,7 @@ def run_demo(
     models['nsfw'].concept_embeds_weights *= 1.07
     models['nsfw'].special_care_embeds_weights *= 1.07
 
-    with open('instructions.md', 'r') as f:
+    with open('zero123/instructions.md', 'r') as f:
         article = f.read()
 
     # Compose demo layout & data flow.

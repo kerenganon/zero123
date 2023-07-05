@@ -8,6 +8,7 @@ import copy
 
 from packaging import version
 from omegaconf import OmegaConf
+import gc
 from torch.utils.data import random_split, DataLoader, Dataset, Subset
 from functools import partial
 from PIL import Image
@@ -16,6 +17,7 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
+import traceback
 from pytorch_lightning.utilities import rank_zero_info
 
 from ldm.data.base import Txt2ImgIterableBaseDataset
@@ -148,6 +150,12 @@ def get_parser(**parser_kwargs):
         default=512,
         help="resolution of image",
     )
+    # parser.add_argument(
+    #     "--max_epochs",
+    #     type=int,
+    #     default=1000,
+    #     help="number of epochs",
+    # )
     return parser
 
 
@@ -453,6 +461,9 @@ class CUDACallback(Callback):
 
             rank_zero_info(f"Average Epoch time: {epoch_time:.2f} seconds")
             rank_zero_info(f"Average Peak memory {max_memory:.2f}MiB")
+            torch.cuda.empty_cache()
+            gc.collect()
+            
         except AttributeError:
             pass
 
@@ -601,6 +612,8 @@ if __name__ == "__main__":
     #               key: value
 
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    # data = np.load('zero123/views_whole_sphere/0a00b69cc98b45ab9fdd02cf86729909/000.npy')
+    
 
     # add cwd for convenience and to make classes in this file available when
     # running as `python main.py`
@@ -852,10 +865,15 @@ if __name__ == "__main__":
             from pytorch_lightning.trainer.connectors.checkpoint_connector import CheckpointConnector
             setattr(CheckpointConnector, "hpc_resume_path", None)
 
+        # trainer_kwargs["max_epochs"] = 10000
+        if opt.max_epochs:
+            trainer_kwargs["max_epochs"] = opt.max_epochs
+
         trainer = Trainer.from_argparse_args(trainer_opt, **trainer_kwargs)
         trainer.logdir = logdir  ###
 
         # data
+        # KEREN: This is where the data is initialized, currently it doesn't contain anything
         data = instantiate_from_config(config.data)
         # NOTE according to https://pytorch-lightning.readthedocs.io/en/latest/datamodules.html
         # calling these ourselves should not be necessary but it is.
@@ -917,7 +935,10 @@ if __name__ == "__main__":
         if opt.train:
             try:
                 trainer.fit(model, data)
-            except Exception:
+            # KEREN: This is where we stop without training data
+            except Exception as exc:
+                traceback.print_exc()
+                print(exc)
                 if not opt.debug:
                     melk()
                 raise
